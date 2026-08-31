@@ -19,13 +19,14 @@ describe("mandalart editing", () => {
   it("edits and completes an action in the focused region", async () => {
     const mandalart = createInitialState().mandalarts[0];
     const core = mandalart.coreGoals[0];
+    const onSelectCore = vi.fn();
     const onUpdateAction = vi.fn();
     const onToggleAction = vi.fn();
     render(
       <FocusEditor
         mandalart={mandalart}
         selectedCoreId={core.id}
-        onSelectCore={vi.fn()}
+        onSelectCore={onSelectCore}
         onUpdateCenter={vi.fn()}
         onUpdateCore={vi.fn()}
         onUpdateAction={onUpdateAction}
@@ -39,6 +40,8 @@ describe("mandalart editing", () => {
     expect(onUpdateAction).toHaveBeenLastCalledWith(core.id, core.actions[0].id, "아침 산책");
     await userEvent.click(screen.getByRole("checkbox", { name: "주 3회 30분 걷기 완료" }));
     expect(onToggleAction).toHaveBeenCalledWith(core.id, core.actions[0].id);
+    await userEvent.click(screen.getByRole("button", { name: "중심 설계로 돌아가기" }));
+    expect(onSelectCore).toHaveBeenCalledWith(null);
   });
 
   it("opens a core goal from its card and edits only from the color button", async () => {
