@@ -1,0 +1,13 @@
+.mandalart-list-item { position: relative; display: grid; grid-template-columns: 1fr 34px; border-radius: 10px; }
+.mandalart-list-item.active { background: #365443; }
+.mandalart-list .select-mandalart { grid-template-columns: 8px 1fr auto; padding-right: 4px; }
+.mandalart-list .more-button { display: grid; grid-template-columns: 1fr; place-items: center; padding: 0; background: transparent; }
+.item-menu { position: absolute; z-index: 10; left: 18px; right: 6px; top: 42px; background: #fffefa; color: #27352c; border: 1px solid #d7d7cc; border-radius: 10px; padding: 5px; box-shadow: 0 12px 30px rgba(0,0,0,.2); }
+.mandalart-list .item-menu button { display: flex; width: 100%; gap: 8px; color: #27352c; padding: 8px; border-radius: 7px; }
+.mandalart-list .item-menu button:hover { background: #f0eee5; }
+.mandalart-list .item-menu .danger { color: #a33f36; }
+.backup-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px; }
+.backup-controls button, .backup-controls label { min-height: 36px; border: 1px solid #60796b; border-radius: 8px; background: transparent; color: #b9c8bf; font-size: 11px; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; }
+.backup-controls input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.backup-controls label:focus-within { outline: 3px solid #d8a94f; outline-offset: 2px; }
+@media (max-width: 760px) { .mandalart-list-item { min-width: 210px; } .mandalart-list .select-mandalart { min-width: 0; } .item-menu { position: fixed; left: 18px; right: 18px; top: auto; bottom: 18px; } }
