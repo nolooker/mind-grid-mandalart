@@ -82,7 +82,7 @@ export function normalizeActionText(item: ActionItem, text: string): ActionItem 
 }
 
 export function createInitialState(): MandalartAppState {
-  const mandalart = createMandalart("2026 나의 성장 계획");
+  const mandalart = createMandalart("나의 성장 계획");
   mandalart.centerGoal = "더 나은 나 만들기";
   const examples = [
     ["건강", "주 3회 30분 걷기", "하루 물 6잔 마시기"],

@@ -30,7 +30,16 @@ export function parseStoredState(raw: string | null): MandalartAppState | null {
         });
       });
     });
-    return valid ? (value as MandalartAppState) : null;
+    if (!valid) return null;
+    const restored = value as MandalartAppState;
+    return {
+      ...restored,
+      mandalarts: restored.mandalarts.map((mandalart) =>
+        mandalart.title === "2026 나의 성장 계획"
+          ? { ...mandalart, title: "나의 성장 계획" }
+          : mandalart,
+      ),
+    };
   } catch {
     return null;
   }

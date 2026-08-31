@@ -4,6 +4,7 @@ import {
   calculateOverallProgress,
   createMandalart,
   normalizeActionText,
+  createInitialState,
   type CoreGoal,
 } from "./mandalart";
 
@@ -21,6 +22,9 @@ function coreWith(...actions: Array<[string, boolean]>): CoreGoal {
 }
 
 describe("mandalart domain", () => {
+  it("uses a timeless default plan title", () => {
+    expect(createInitialState().mandalarts[0].title).toBe("나의 성장 계획");
+  });
   it("creates the complete 8 by 8 goal structure", () => {
     const mandalart = createMandalart("건강");
 
