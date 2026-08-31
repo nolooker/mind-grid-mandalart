@@ -1,5 +1,5 @@
 {
-  "name": "site-creator-vinext-starter",
+  "name": "mind-grid-mandalart",
   "version": "0.1.0",
   "private": true,
   "engines": {
@@ -11,7 +11,6 @@
     "start": "vinext start",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:site": "npm run build && node --test tests/rendered-html.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate"
   },
@@ -19,8 +18,7 @@
     "drizzle-orm": "0.45.2",
     "lucide-react": "^1.37.0",
     "react": "19.2.6",
-    "react-dom": "19.2.6",
-    "react-loading-skeleton": "3.5.0"
+    "react-dom": "19.2.6"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.37.1",

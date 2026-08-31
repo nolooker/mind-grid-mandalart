@@ -19,4 +19,14 @@ describe("mandalart management", () => {
     expect(screen.getByRole("button", { name: "JSON 백업 내보내기" })).toBeVisible();
     expect(screen.getByLabelText("JSON 백업 가져오기")).toBeInTheDocument();
   });
+
+  it("closes an open management menu with Escape", async () => {
+    const state = createInitialState();
+    const actions = { create: vi.fn(), rename: vi.fn(), duplicate: vi.fn(), remove: vi.fn(), select: vi.fn(), replaceAll: vi.fn() };
+    render(<MandalartSidebar state={state} storageStatus="saved" {...actions} onResetSelection={vi.fn()} />);
+    await userEvent.click(screen.getByRole("button", { name: "2026 나의 성장 계획 관리" }));
+    expect(screen.getByRole("menu")).toBeVisible();
+    await userEvent.keyboard("{Escape}");
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+  });
 });

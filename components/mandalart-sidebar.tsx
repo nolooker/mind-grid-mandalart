@@ -1,5 +1,5 @@
 import { Copy, Grid3X3, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { StorageStatus } from "../hooks/use-mandalarts";
 import { calculateOverallProgress, type MandalartAppState } from "../lib/mandalart";
 import { BackupControls } from "./backup-controls";
@@ -18,6 +18,11 @@ interface Props {
 
 export function MandalartSidebar({ state, storageStatus, create, rename, duplicate, remove, select, replaceAll, onResetSelection }: Props) {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  useEffect(() => {
+    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === "Escape") setOpenMenu(null); };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, []);
   const selected = state.selectedMandalartId;
   const add = () => { const title = window.prompt("새 만다라트의 이름을 입력하세요", "새 만다라트"); if (title !== null) create(title); };
   const renameOne = (id: string, current: string) => { const title = window.prompt("새 이름을 입력하세요", current); if (title !== null) rename(id, title); setOpenMenu(null); };
