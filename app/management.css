@@ -11,3 +11,9 @@
 .backup-controls input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .backup-controls label:focus-within { outline: 3px solid #d8a94f; outline-offset: 2px; }
 @media (max-width: 760px) { .mandalart-list-item { min-width: 210px; } .mandalart-list .select-mandalart { min-width: 0; } .item-menu { position: fixed; left: 18px; right: 18px; top: auto; bottom: 18px; } }
+.goal-card-row { min-height: 54px; display: grid; grid-template-columns: 1fr 46px; border-radius: 12px; overflow: hidden; border: 1px solid rgba(35,49,41,.1); }
+.goal-open-button { border: 0; background: rgba(255,255,255,.46); display: grid; grid-template-columns: 30px 1fr; align-items: center; text-align: left; gap: 8px; padding: 10px 12px; cursor: pointer; }
+.goal-open-button span { font-size: 9px; font-weight: 800; opacity: .58; }
+.goal-open-button strong { font-size: 13px; }
+.goal-edit-button { border: 0; border-left: 1px solid rgba(35,49,41,.1); display: grid; place-items: center; cursor: pointer; }
+.goal-card-row > input { min-width: 0; border: 0; background: rgba(255,255,255,.62); padding: 0 14px; outline: 0; font-weight: 700; }

@@ -25,6 +25,7 @@ describe("mandalart editing", () => {
       <FocusEditor
         mandalart={mandalart}
         selectedCoreId={core.id}
+        onSelectCore={vi.fn()}
         onUpdateCenter={vi.fn()}
         onUpdateCore={vi.fn()}
         onUpdateAction={onUpdateAction}
@@ -38,5 +39,25 @@ describe("mandalart editing", () => {
     expect(onUpdateAction).toHaveBeenLastCalledWith(core.id, core.actions[0].id, "아침 산책");
     await userEvent.click(screen.getByRole("checkbox", { name: "주 3회 30분 걷기 완료" }));
     expect(onToggleAction).toHaveBeenCalledWith(core.id, core.actions[0].id);
+  });
+
+  it("opens a core goal from its card and edits only from the color button", async () => {
+    const mandalart = createInitialState().mandalarts[0];
+    const core = mandalart.coreGoals[0];
+    const onSelectCore = vi.fn();
+    const onUpdateCore = vi.fn();
+    render(
+      <FocusEditor mandalart={mandalart} selectedCoreId={null} onSelectCore={onSelectCore} onUpdateCenter={vi.fn()} onUpdateCore={onUpdateCore} onUpdateAction={vi.fn()} onToggleAction={vi.fn()} />,
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: "건강 세부 계획 열기" }));
+    expect(onSelectCore).toHaveBeenCalledWith(core.id);
+    onSelectCore.mockClear();
+    await userEvent.click(screen.getByRole("button", { name: "건강 이름 수정" }));
+    expect(onSelectCore).not.toHaveBeenCalled();
+    const input = screen.getByRole("textbox", { name: "핵심 목표 1" });
+    fireEvent.change(input, { target: { value: "튼튼한 몸" } });
+    await userEvent.keyboard("{Enter}");
+    expect(onUpdateCore).toHaveBeenCalledWith(core.id, "튼튼한 몸");
   });
 });
