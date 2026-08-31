@@ -63,4 +63,14 @@ describe("mandalart editing", () => {
     await userEvent.keyboard("{Enter}");
     expect(onUpdateCore).toHaveBeenCalledWith(core.id, "튼튼한 몸");
   });
+
+  it("labels the center editor as the big goal only", () => {
+    const mandalart = createInitialState().mandalarts[0];
+    render(
+      <FocusEditor mandalart={mandalart} selectedCoreId={null} onSelectCore={vi.fn()} onUpdateCenter={vi.fn()} onUpdateCore={vi.fn()} onUpdateAction={vi.fn()} onToggleAction={vi.fn()} />,
+    );
+
+    expect(screen.getByRole("heading", { name: "큰 목표" })).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "큰 목표와 8가지 방향" })).not.toBeInTheDocument();
+  });
 });
