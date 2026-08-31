@@ -28,7 +28,7 @@ function cloneMandalart(source: Mandalart): Mandalart {
   };
 }
 
-export function useMandalarts() {
+export function useMandalarts(passcode: string) {
   const [state, setState] = useState<MandalartAppState>(() => createInitialState());
   const [storageStatus, setStorageStatus] = useState<StorageStatus>("saving");
   const loaded = useRef(false);
@@ -36,7 +36,7 @@ export function useMandalarts() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/mandalarts")
+    fetch("/api/mandalarts", { headers: { "x-mandalart-passcode": passcode } })
       .then((response) => {
         if (!response.ok) throw new Error("failed to load mandalarts");
         return response.json() as Promise<{ state: MandalartAppState }>;
@@ -56,7 +56,7 @@ export function useMandalarts() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [passcode]);
 
   useEffect(() => {
     if (!loaded.current) return;
@@ -68,7 +68,7 @@ export function useMandalarts() {
     const timer = window.setTimeout(() => {
       fetch("/api/mandalarts", {
         method: "PUT",
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", "x-mandalart-passcode": passcode },
         body: JSON.stringify({ state }),
       })
         .then((response) => {
@@ -78,7 +78,7 @@ export function useMandalarts() {
         .catch(() => setStorageStatus("error"));
     }, 250);
     return () => window.clearTimeout(timer);
-  }, [state]);
+  }, [passcode, state]);
 
   const updateSelected = (transform: (mandalart: Mandalart) => Mandalart) => {
     setState((current) => ({

@@ -14,13 +14,14 @@ describe("useMandalarts", () => {
     saved.mandalarts[0].title = "서버 저장 계획";
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => ({ state: saved }) }));
 
-    const { result } = renderHook(() => useMandalarts());
+    const { result } = renderHook(() => useMandalarts("phone-pass"));
 
     await waitFor(() => expect(result.current.state.mandalarts[0].title).toBe("서버 저장 계획"));
+    expect(fetch).toHaveBeenCalledWith("/api/mandalarts", expect.objectContaining({ headers: { "x-mandalart-passcode": "phone-pass" } }));
   });
 
   it("updates immediately and clears completion when action text becomes blank", () => {
-    const { result } = renderHook(() => useMandalarts());
+    const { result } = renderHook(() => useMandalarts("phone-pass"));
     const mandalart = result.current.state.mandalarts[0];
     const core = mandalart.coreGoals[0];
     const action = core.actions[0];
@@ -35,7 +36,7 @@ describe("useMandalarts", () => {
     vi.useFakeTimers();
     const fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ state: createInitialState() }) });
     vi.stubGlobal("fetch", fetch);
-    const { result } = renderHook(() => useMandalarts());
+    const { result } = renderHook(() => useMandalarts("phone-pass"));
 
     await act(async () => {
       await Promise.resolve();
@@ -47,7 +48,7 @@ describe("useMandalarts", () => {
     act(() => result.current.rename(result.current.state.mandalarts[0].id, "새 이름"));
     expect(fetch).not.toHaveBeenCalledWith("/api/mandalarts", expect.objectContaining({ method: "PUT" }));
     act(() => vi.advanceTimersByTime(250));
-    expect(fetch).toHaveBeenCalledWith("/api/mandalarts", expect.objectContaining({ method: "PUT" }));
+    expect(fetch).toHaveBeenCalledWith("/api/mandalarts", expect.objectContaining({ headers: { "content-type": "application/json", "x-mandalart-passcode": "phone-pass" }, method: "PUT" }));
 
     vi.useRealTimers();
   });

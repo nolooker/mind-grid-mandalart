@@ -1,4 +1,5 @@
 import { env } from "cloudflare:workers";
+import { authorizePasscode } from "../../../lib/app-lock";
 import { loadServerState, saveServerState } from "../../../lib/server-state";
 import { parseStoredState } from "../../../lib/storage";
 
@@ -9,8 +10,11 @@ function getDatabase() {
   return env.DB;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    if (!authorizePasscode(request, env.MANDALART_PASSCODE)) {
+      return Response.json({ error: "관리 비밀번호를 확인해 주세요" }, { status: 401 });
+    }
     const state = await loadServerState(getDatabase());
     return Response.json({ state });
   } catch {
@@ -20,6 +24,9 @@ export async function GET() {
 
 export async function PUT(request: Request) {
   try {
+    if (!authorizePasscode(request, env.MANDALART_PASSCODE)) {
+      return Response.json({ error: "관리 비밀번호를 확인해 주세요" }, { status: 401 });
+    }
     const payload = (await request.json()) as { state?: unknown };
     const state = parseStoredState(JSON.stringify(payload.state));
     if (!state) {
