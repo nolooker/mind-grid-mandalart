@@ -20,5 +20,7 @@ describe("AppShell lock", () => {
     await userEvent.click(screen.getByRole("button", { name: "열기" }));
 
     await waitFor(() => expect(screen.getByRole("navigation", { name: "내 만다라트" })).toBeVisible());
+    expect(screen.getByText("큰 목표를 나누고, 오늘 할 수 있는 행동으로 바꿔보세요.")).toBeVisible();
+    expect(screen.queryByText("큰 목표를 8가지 방향으로 나누고, 오늘 할 수 있는 행동으로 바꿔보세요.")).not.toBeInTheDocument();
   });
 });
