@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   COLOR_KEYS,
   createInitialState,
@@ -9,7 +9,6 @@ import {
   type Mandalart,
   type MandalartAppState,
 } from "../lib/mandalart";
-import { parseStoredState, serializeState, STORAGE_KEY } from "../lib/storage";
 
 export type StorageStatus = "saved" | "saving" | "error";
 
@@ -30,21 +29,53 @@ function cloneMandalart(source: Mandalart): Mandalart {
 }
 
 export function useMandalarts() {
-  const [state, setState] = useState<MandalartAppState>(() => {
-    if (typeof window === "undefined") return createInitialState();
-    return parseStoredState(localStorage.getItem(STORAGE_KEY)) ?? createInitialState();
-  });
-  const [storageStatus, setStorageStatus] = useState<StorageStatus>("saved");
+  const [state, setState] = useState<MandalartAppState>(() => createInitialState());
+  const [storageStatus, setStorageStatus] = useState<StorageStatus>("saving");
+  const loaded = useRef(false);
+  const skipNextSave = useRef(false);
 
   useEffect(() => {
+    let cancelled = false;
+    fetch("/api/mandalarts")
+      .then((response) => {
+        if (!response.ok) throw new Error("failed to load mandalarts");
+        return response.json() as Promise<{ state: MandalartAppState }>;
+      })
+      .then(({ state: savedState }) => {
+        if (cancelled) return;
+        skipNextSave.current = true;
+        setState(savedState);
+        loaded.current = true;
+        setStorageStatus("saved");
+      })
+      .catch(() => {
+        if (cancelled) return;
+        loaded.current = true;
+        setStorageStatus("error");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!loaded.current) return;
+    if (skipNextSave.current) {
+      skipNextSave.current = false;
+      return;
+    }
     setStorageStatus("saving");
     const timer = window.setTimeout(() => {
-      try {
-        localStorage.setItem(STORAGE_KEY, serializeState(state));
-        setStorageStatus("saved");
-      } catch {
-        setStorageStatus("error");
-      }
+      fetch("/api/mandalarts", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ state }),
+      })
+        .then((response) => {
+          if (!response.ok) throw new Error("failed to save mandalarts");
+          setStorageStatus("saved");
+        })
+        .catch(() => setStorageStatus("error"));
     }, 250);
     return () => window.clearTimeout(timer);
   }, [state]);

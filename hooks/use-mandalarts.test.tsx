@@ -1,19 +1,22 @@
-import { act, renderHook } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createInitialState } from "../lib/mandalart";
-import { STORAGE_KEY, serializeState } from "../lib/storage";
 import { useMandalarts } from "./use-mandalarts";
 
 describe("useMandalarts", () => {
-  beforeEach(() => localStorage.clear());
+  beforeEach(() => {
+    localStorage.clear();
+    vi.restoreAllMocks();
+  });
 
-  it("restores a valid saved state", () => {
+  it("restores state from the server database", async () => {
     const saved = createInitialState();
-    saved.mandalarts[0].title = "저장된 계획";
-    localStorage.setItem(STORAGE_KEY, serializeState(saved));
+    saved.mandalarts[0].title = "서버 저장 계획";
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => ({ state: saved }) }));
 
     const { result } = renderHook(() => useMandalarts());
-    expect(result.current.state.mandalarts[0].title).toBe("저장된 계획");
+
+    await waitFor(() => expect(result.current.state.mandalarts[0].title).toBe("서버 저장 계획"));
   });
 
   it("updates immediately and clears completion when action text becomes blank", () => {
@@ -28,17 +31,24 @@ describe("useMandalarts", () => {
     expect(result.current.state.mandalarts[0].coreGoals[0].actions[0].completed).toBe(false);
   });
 
-  it("persists once after the debounce", () => {
+  it("persists once after the debounce", async () => {
     vi.useFakeTimers();
-    const spy = vi.spyOn(Storage.prototype, "setItem");
+    const fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ state: createInitialState() }) });
+    vi.stubGlobal("fetch", fetch);
     const { result } = renderHook(() => useMandalarts());
 
-    act(() => result.current.rename(result.current.state.mandalarts[0].id, "새 이름"));
-    expect(spy).not.toHaveBeenCalled();
-    act(() => vi.advanceTimersByTime(250));
-    expect(spy).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(result.current.storageStatus).toBe("saved");
+    fetch.mockClear();
 
-    spy.mockRestore();
+    act(() => result.current.rename(result.current.state.mandalarts[0].id, "새 이름"));
+    expect(fetch).not.toHaveBeenCalledWith("/api/mandalarts", expect.objectContaining({ method: "PUT" }));
+    act(() => vi.advanceTimersByTime(250));
+    expect(fetch).toHaveBeenCalledWith("/api/mandalarts", expect.objectContaining({ method: "PUT" }));
+
     vi.useRealTimers();
   });
 });
