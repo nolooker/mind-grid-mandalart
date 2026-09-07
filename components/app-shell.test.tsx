@@ -23,4 +23,16 @@ describe("AppShell lock", () => {
     expect(screen.getByText("큰 목표를 나누고, 오늘 할 수 있는 행동으로 바꿔보세요.")).toBeVisible();
     expect(screen.queryByText("큰 목표를 8가지 방향으로 나누고, 오늘 할 수 있는 행동으로 바꿔보세요.")).not.toBeInTheDocument();
   });
+
+  it("places the goal editor before the full board for mobile-first editing", async () => {
+    render(<AppShell />);
+
+    await userEvent.type(screen.getByLabelText("관리 비밀번호"), "phone-pass");
+    await userEvent.click(screen.getByRole("button", { name: "열기" }));
+
+    const editor = await screen.findByRole("region", { name: "큰 목표" });
+    const board = screen.getByRole("region", { name: "한눈에 보는 만다라트" });
+
+    expect(editor.compareDocumentPosition(board) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
 });
