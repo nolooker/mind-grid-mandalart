@@ -24,6 +24,12 @@ function cloneMandalart(source: Mandalart): Mandalart {
       title: core.title,
       colorKey: COLOR_KEYS[index],
       actions: core.actions.map((action) => ({ ...action, id: crypto.randomUUID() })),
+      detailGoals: core.detailGoals.map((detail, detailIndex) => ({
+        id: crypto.randomUUID(),
+        title: detail.title,
+        colorKey: COLOR_KEYS[detailIndex],
+        actions: detail.actions.map((action) => ({ ...action, id: crypto.randomUUID() })),
+      })),
     })),
   };
 }
@@ -130,6 +136,15 @@ export function useMandalarts(passcode: string) {
     },
     toggleAction(coreId: string, actionId: string) {
       updateSelected((mandalart) => ({ ...mandalart, coreGoals: mandalart.coreGoals.map((core) => core.id === coreId ? { ...core, actions: core.actions.map((action) => action.id === actionId && action.text.trim() ? { ...action, completed: !action.completed } : action) } : core) }));
+    },
+    updateDetailCore(coreId: string, detailId: string, text: string) {
+      updateSelected((mandalart) => ({ ...mandalart, coreGoals: mandalart.coreGoals.map((core) => core.id === coreId ? { ...core, detailGoals: core.detailGoals.map((detail) => detail.id === detailId ? { ...detail, title: text } : detail) } : core) }));
+    },
+    updateDetailAction(coreId: string, detailId: string, actionId: string, text: string) {
+      updateSelected((mandalart) => ({ ...mandalart, coreGoals: mandalart.coreGoals.map((core) => core.id === coreId ? { ...core, detailGoals: core.detailGoals.map((detail) => detail.id === detailId ? { ...detail, actions: detail.actions.map((action) => action.id === actionId ? normalizeActionText(action, text) : action) } : detail) } : core) }));
+    },
+    toggleDetailAction(coreId: string, detailId: string, actionId: string) {
+      updateSelected((mandalart) => ({ ...mandalart, coreGoals: mandalart.coreGoals.map((core) => core.id === coreId ? { ...core, detailGoals: core.detailGoals.map((detail) => detail.id === detailId ? { ...detail, actions: detail.actions.map((action) => action.id === actionId && action.text.trim() ? { ...action, completed: !action.completed } : action) } : detail) } : core) }));
     },
     replaceAll(next: MandalartAppState) {
       setState(next);

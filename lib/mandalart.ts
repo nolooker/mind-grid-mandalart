@@ -24,6 +24,14 @@ export interface CoreGoal {
   title: string;
   colorKey: ColorKey;
   actions: ActionItem[];
+  detailGoals: DetailGoal[];
+}
+
+export interface DetailGoal {
+  id: string;
+  title: string;
+  colorKey: ColorKey;
+  actions: ActionItem[];
 }
 
 export interface Mandalart {
@@ -45,6 +53,13 @@ const uid = () => crypto.randomUUID();
 
 const createAction = (): ActionItem => ({ id: uid(), text: "", completed: false });
 
+const createDetailGoal = (colorKey: ColorKey): DetailGoal => ({
+  id: uid(),
+  title: "",
+  colorKey,
+  actions: Array.from({ length: 8 }, createAction),
+});
+
 export function createMandalart(title = "새 만다라트"): Mandalart {
   const now = new Date().toISOString();
   return {
@@ -58,20 +73,28 @@ export function createMandalart(title = "새 만다라트"): Mandalart {
       title: "",
       colorKey,
       actions: Array.from({ length: 8 }, createAction),
+      detailGoals: COLOR_KEYS.map(createDetailGoal),
     })),
   };
 }
 
-const writtenActions = (core: CoreGoal) => core.actions.filter((action) => action.text.trim());
+const writtenActions = (core: CoreGoal | DetailGoal) => core.actions.filter((action) => action.text.trim());
+const coreWrittenActions = (core: CoreGoal) => core.detailGoals.length ? core.detailGoals.flatMap(writtenActions) : writtenActions(core);
 
-export function calculateCoreProgress(core: CoreGoal): number {
+export function calculateCoreProgress(core: CoreGoal | DetailGoal): number {
   const written = writtenActions(core);
   if (!written.length) return 0;
   return Math.round((written.filter((action) => action.completed).length / written.length) * 100);
 }
 
+export function calculateCoreTreeProgress(core: CoreGoal): number {
+  const written = coreWrittenActions(core);
+  if (!written.length) return 0;
+  return Math.round((written.filter((action) => action.completed).length / written.length) * 100);
+}
+
 export function calculateOverallProgress(mandalart: Mandalart): number {
-  const written = mandalart.coreGoals.flatMap(writtenActions);
+  const written = mandalart.coreGoals.flatMap(coreWrittenActions);
   if (!written.length) return 0;
   return Math.round((written.filter((action) => action.completed).length / written.length) * 100);
 }
@@ -100,6 +123,13 @@ export function createInitialState(): MandalartAppState {
     actions: core.actions.map((action, actionIndex) => ({
       ...action,
       text: examples[index][actionIndex + 1] ?? "",
+    })),
+    detailGoals: core.detailGoals.map((detail, detailIndex) => ({
+      ...detail,
+      title: detailIndex === 0 ? examples[index][0] : "",
+      actions: detailIndex === 0
+        ? detail.actions.map((action, actionIndex) => ({ ...action, text: examples[index][actionIndex + 1] ?? "" }))
+        : detail.actions,
     })),
   }));
   return { schemaVersion: SCHEMA_VERSION, selectedMandalartId: mandalart.id, mandalarts: [mandalart] };

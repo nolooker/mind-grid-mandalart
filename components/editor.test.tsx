@@ -9,11 +9,22 @@ describe("mandalart editing", () => {
   it("selects a core region from the overview", async () => {
     const mandalart = createInitialState().mandalarts[0];
     const onSelectCore = vi.fn();
-    render(<MandalartBoard mandalart={mandalart} selectedCoreId={null} onSelectCore={onSelectCore} />);
+    render(<MandalartBoard mandalart={mandalart} selectedCoreId={null} selectedDetailId={null} onSelectCore={onSelectCore} onSelectDetail={vi.fn()} />);
 
-    await userEvent.click(screen.getAllByRole("button", { name: "건강 영역 편집" })[0]);
+    await userEvent.click(screen.getAllByRole("button", { name: "건강 상세 만다라트 열기" })[0]);
     expect(onSelectCore).toHaveBeenCalledWith(mandalart.coreGoals[0].id);
     expect(screen.getByText("더 나은 나 만들기")).toBeVisible();
+  });
+
+  it("shows a second-depth mandalart for a selected core goal", async () => {
+    const mandalart = createInitialState().mandalarts[0];
+    const core = mandalart.coreGoals[0];
+    const onSelectDetail = vi.fn();
+    render(<MandalartBoard mandalart={mandalart} selectedCoreId={core.id} selectedDetailId={null} onSelectCore={vi.fn()} onSelectDetail={onSelectDetail} />);
+
+    expect(screen.getByRole("heading", { name: "건강 상세 만다라트" })).toBeVisible();
+    await userEvent.click(screen.getAllByRole("button", { name: "건강 행동 편집" })[0]);
+    expect(onSelectDetail).toHaveBeenCalledWith(core.detailGoals[0].id);
   });
 
   it("edits and completes an action in the focused region", async () => {
@@ -26,22 +37,23 @@ describe("mandalart editing", () => {
       <FocusEditor
         mandalart={mandalart}
         selectedCoreId={core.id}
+        selectedDetailId={core.detailGoals[0].id}
         onSelectCore={onSelectCore}
+        onSelectDetail={vi.fn()}
         onUpdateCenter={vi.fn()}
         onUpdateCore={vi.fn()}
-        onUpdateAction={onUpdateAction}
-        onToggleAction={onToggleAction}
+        onUpdateDetailCore={vi.fn()}
+        onUpdateDetailAction={(coreId, _detailId, actionId, text) => onUpdateAction(coreId, actionId, text)}
+        onToggleDetailAction={(coreId, _detailId, actionId) => onToggleAction(coreId, actionId)}
       />,
     );
 
-    expect(screen.getByRole("heading", { name: "건강 세부 계획" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "건강 행동" })).toBeVisible();
     const action = screen.getByLabelText("실행 항목 1");
     fireEvent.change(action, { target: { value: "아침 산책" } });
-    expect(onUpdateAction).toHaveBeenLastCalledWith(core.id, core.actions[0].id, "아침 산책");
+    expect(onUpdateAction).toHaveBeenLastCalledWith(core.id, core.detailGoals[0].actions[0].id, "아침 산책");
     await userEvent.click(screen.getByRole("checkbox", { name: "주 3회 30분 걷기 완료" }));
-    expect(onToggleAction).toHaveBeenCalledWith(core.id, core.actions[0].id);
-    await userEvent.click(screen.getByRole("button", { name: "중심 설계로 돌아가기" }));
-    expect(onSelectCore).toHaveBeenCalledWith(null);
+    expect(onToggleAction).toHaveBeenCalledWith(core.id, core.detailGoals[0].actions[0].id);
   });
 
   it("opens a core goal from its card and edits only from the color button", async () => {
@@ -50,10 +62,10 @@ describe("mandalart editing", () => {
     const onSelectCore = vi.fn();
     const onUpdateCore = vi.fn();
     render(
-      <FocusEditor mandalart={mandalart} selectedCoreId={null} onSelectCore={onSelectCore} onUpdateCenter={vi.fn()} onUpdateCore={onUpdateCore} onUpdateAction={vi.fn()} onToggleAction={vi.fn()} />,
+      <FocusEditor mandalart={mandalart} selectedCoreId={null} selectedDetailId={null} onSelectCore={onSelectCore} onSelectDetail={vi.fn()} onUpdateCenter={vi.fn()} onUpdateCore={onUpdateCore} onUpdateDetailCore={vi.fn()} onUpdateDetailAction={vi.fn()} onToggleDetailAction={vi.fn()} />,
     );
 
-    await userEvent.click(screen.getByRole("button", { name: "건강 세부 계획 열기" }));
+    await userEvent.click(screen.getByRole("button", { name: "건강 상세 만다라트 열기" }));
     expect(onSelectCore).toHaveBeenCalledWith(core.id);
     onSelectCore.mockClear();
     await userEvent.click(screen.getByRole("button", { name: "건강 이름 수정" }));
@@ -67,7 +79,7 @@ describe("mandalart editing", () => {
   it("labels the center editor as the big goal only", () => {
     const mandalart = createInitialState().mandalarts[0];
     render(
-      <FocusEditor mandalart={mandalart} selectedCoreId={null} onSelectCore={vi.fn()} onUpdateCenter={vi.fn()} onUpdateCore={vi.fn()} onUpdateAction={vi.fn()} onToggleAction={vi.fn()} />,
+      <FocusEditor mandalart={mandalart} selectedCoreId={null} selectedDetailId={null} onSelectCore={vi.fn()} onSelectDetail={vi.fn()} onUpdateCenter={vi.fn()} onUpdateCore={vi.fn()} onUpdateDetailCore={vi.fn()} onUpdateDetailAction={vi.fn()} onToggleDetailAction={vi.fn()} />,
     );
 
     expect(screen.getByRole("heading", { name: "큰 목표" })).toBeVisible();

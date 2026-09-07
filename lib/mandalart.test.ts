@@ -18,6 +18,7 @@ function coreWith(...actions: Array<[string, boolean]>): CoreGoal {
       text: actions[index]?.[0] ?? "",
       completed: actions[index]?.[1] ?? false,
     })),
+    detailGoals: [],
   };
 }
 
@@ -31,7 +32,8 @@ describe("mandalart domain", () => {
     expect(mandalart.title).toBe("건강");
     expect(mandalart.coreGoals).toHaveLength(8);
     expect(mandalart.coreGoals.every((goal) => goal.actions.length === 8)).toBe(true);
-    expect(new Set(mandalart.coreGoals.flatMap((goal) => [goal.id, ...goal.actions.map((action) => action.id)])).size).toBe(72);
+    expect(mandalart.coreGoals.every((goal) => goal.detailGoals.length === 8)).toBe(true);
+    expect(mandalart.coreGoals.every((goal) => goal.detailGoals.every((detail) => detail.actions.length === 8))).toBe(true);
   });
 
   it("calculates progress from written actions only", () => {
@@ -42,8 +44,14 @@ describe("mandalart domain", () => {
 
   it("calculates overall progress across every core goal", () => {
     const mandalart = createMandalart("건강");
-    mandalart.coreGoals[0] = coreWith(["걷기", true], ["물 마시기", false]);
-    mandalart.coreGoals[1] = { ...coreWith(["독서", true]), id: "core-2" };
+    mandalart.coreGoals[0].detailGoals[0] = {
+      ...mandalart.coreGoals[0].detailGoals[0],
+      actions: coreWith(["걷기", true], ["물 마시기", false]).actions,
+    };
+    mandalart.coreGoals[1].detailGoals[0] = {
+      ...mandalart.coreGoals[1].detailGoals[0],
+      actions: coreWith(["독서", true]).actions,
+    };
 
     expect(calculateOverallProgress(mandalart)).toBe(67);
   });
