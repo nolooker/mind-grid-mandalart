@@ -11,9 +11,9 @@ interface Props {
 
 const CENTER_ORDER = [0, 1, 2, 3, -1, 4, 5, 6, 7];
 
-function OuterRegion({ core, selected, onSelect }: { core: CoreGoal | DetailGoal; selected: boolean; onSelect: () => void }) {
+function OuterRegion({ core, selected, onSelect, actionLabel = false }: { core: CoreGoal | DetailGoal; selected: boolean; onSelect: () => void; actionLabel?: boolean }) {
   const cells = [core.actions[0], core.actions[1], core.actions[2], core.actions[3], null, core.actions[4], core.actions[5], core.actions[6], core.actions[7]];
-  return <div className={`board-region tone-${core.colorKey} ${selected ? "selected" : ""}`}>{cells.map((action, index) => action ? <div className={`board-cell action-cell ${action.completed ? "is-complete" : ""}`} key={action.id} title={action.text}>{action.completed && <Check size={10} aria-hidden="true" />}{action.text || <span className="empty-dot" />}</div> : <button className="board-cell core-cell" type="button" key={`core-${index}`} onClick={onSelect} aria-label={`${core.title || "이름 없는 목표"} 영역 편집`}>{core.title || "핵심 목표"}</button>)}</div>;
+  return <div className={`board-region tone-${core.colorKey} ${selected ? "selected" : ""}`}>{cells.map((action, index) => action ? <div className={`board-cell action-cell ${action.completed ? "is-complete" : ""}`} key={action.id} title={action.text}>{action.completed && <Check size={10} aria-hidden="true" />}{action.text || <span className="empty-dot" />}</div> : <button className="board-cell core-cell" type="button" key={`core-${index}`} onClick={onSelect} aria-label={`${core.title || "이름 없는 목표"} ${actionLabel ? "행동 편집" : "영역 편집"}`}>{core.title || "핵심 목표"}</button>)}</div>;
 }
 
 export function MandalartBoard({ mandalart, selectedCoreId, selectedDetailId, onSelectCore, onSelectDetail }: Props) {
@@ -31,6 +31,6 @@ export function MandalartBoard({ mandalart, selectedCoreId, selectedDetailId, on
 
     if (regionIndex === 4) return <div className="board-region center-region" key="center">{CENTER_ORDER.map((detailIndex) => detailIndex === -1 ? <button className={`board-cell goal-cell tone-${selectedCore.colorKey}`} type="button" key="goal" onClick={() => onSelectDetail(null)} aria-label={`${selectedCore.title || "이름 없는 목표"} 상세 중심 편집`}>{selectedCore.title || "핵심 목표"}</button> : <button className={`board-cell core-cell tone-${selectedCore.detailGoals[detailIndex].colorKey}`} type="button" key={selectedCore.detailGoals[detailIndex].id} onClick={() => onSelectDetail(selectedCore.detailGoals[detailIndex].id)} aria-label={`${selectedCore.detailGoals[detailIndex].title || "이름 없는 목표"} 행동 편집`}>{selectedCore.detailGoals[detailIndex].title || "세부 방향"}</button>)}</div>;
     const detail = selectedCore.detailGoals[regionIndex < 4 ? regionIndex : regionIndex - 1];
-    return <OuterRegion key={detail.id} core={detail} selected={selectedDetailId === detail.id} onSelect={() => onSelectDetail(detail.id)} />;
+    return <OuterRegion key={detail.id} core={detail} selected={selectedDetailId === detail.id} onSelect={() => onSelectDetail(detail.id)} actionLabel />;
   })}</div></section>;
 }

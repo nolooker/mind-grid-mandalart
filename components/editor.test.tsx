@@ -27,6 +27,17 @@ describe("mandalart editing", () => {
     expect(onSelectDetail).toHaveBeenCalledWith(core.detailGoals[0].id);
   });
 
+  it("opens action editing from outer detail regions in a second-depth board", async () => {
+    const mandalart = createInitialState().mandalarts[0];
+    const core = mandalart.coreGoals[0];
+    const onSelectDetail = vi.fn();
+    render(<MandalartBoard mandalart={mandalart} selectedCoreId={core.id} selectedDetailId={null} onSelectCore={vi.fn()} onSelectDetail={onSelectDetail} />);
+
+    expect(screen.queryByRole("button", { name: "건강 영역 편집" })).not.toBeInTheDocument();
+    await userEvent.click(screen.getAllByRole("button", { name: "건강 행동 편집" })[1]);
+    expect(onSelectDetail).toHaveBeenCalledWith(core.detailGoals[0].id);
+  });
+
   it("edits and completes an action in the focused region", async () => {
     const mandalart = createInitialState().mandalarts[0];
     const core = mandalart.coreGoals[0];
