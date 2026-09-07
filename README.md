@@ -1,100 +1,62 @@
-# vinext-starter
+# 마인드그리드
 
-A clean full-stack starter running on
-[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
-Drizzle support.
+개인용 만다라트 목표 관리 앱입니다. 큰 목표를 8개의 큰 방향으로 나누고, 각 큰 방향마다 한 번 더 9×9 상세 만다라트를 열어 세부 방향과 실행 행동을 관리합니다.
 
-## Prerequisites
+배포 URL: https://mind-grid-mandalart.seoteang.chatgpt.site
 
-- Node.js `>=22.13.0`
+## 주요 기능
 
-## Quick Start
+- 여러 만다라트 생성, 전환, 이름 변경, 복제, 삭제
+- 관리 비밀번호 기반 잠금 화면
+- 큰 목표 중심의 전체 9×9 만다라트
+- 큰 방향별 2-depth 상세 9×9 만다라트
+- 상세판 가운데 칸 클릭 시 세부 방향 목록/설계 편집
+- 상세판 바깥 8개 방향 클릭 시 해당 방향의 행동 편집으로 바로 이동
+- 실행 행동 완료 체크와 진행률 표시
+- 모바일에서는 편집 영역을 우선 배치하고 9×9 보드는 확인용으로 아래 배치
+- JSON 백업 내보내기/가져오기
+- Sites D1 SQLite DB를 통한 서버 저장
+
+## 현재 구조
+
+```text
+나의 성장 계획
+└─ 큰 방향 8개
+   └─ 각 큰 방향의 상세 9×9
+      ├─ 가운데: 세부 방향 목록/설계
+      └─ 바깥 8개 방향: 행동 편집
+```
+
+진행률은 문구가 작성된 실행 행동만 분모에 포함합니다. 빈 행동은 진행률 계산에서 제외되고, 완료된 행동의 문구를 지우면 완료 상태도 자동으로 해제됩니다.
+
+## 저장 방식
+
+데이터는 Sites에 연결된 D1 SQLite DB에 하나의 JSON 상태로 저장됩니다. 그래서 같은 URL과 같은 관리 비밀번호로 접속하면 기기가 달라도 같은 데이터를 봅니다.
+
+관리 비밀번호는 Sites 런타임 환경변수 `MANDALART_PASSCODE`로 관리합니다. 저장소에는 비밀번호 값을 커밋하지 않습니다.
+
+## 개발 명령어
 
 ```bash
 npm install
 npm run dev
+npm test
 npm run build
 ```
 
-This starter does not use `wrangler.jsonc`.
+## 배포
 
-## Included Shape
+이 프로젝트는 OpenAI Sites로 배포합니다.
 
-- edit site code under `app/`
-- `.openai/hosting.json` declares optional Sites D1 and R2 bindings
-- `vite.config.ts` simulates declared bindings for local development
-- `db/schema.ts` starts intentionally empty
-- `examples/d1/` contains an optional D1 example surface
-- `drizzle.config.ts` supports local migration generation when needed
+- Sites 프로젝트 ID는 `.openai/hosting.json`의 `project_id`를 사용합니다.
+- D1 바인딩 이름은 `DB`입니다.
+- 배포 전 `npm test`와 `npm run build`를 통과해야 합니다.
 
-## Workspace Auth Headers
+## 기술 스택
 
-Signed-in visitors receive both `oai-authenticated-user-id` and `oai-authenticated-user-email`. Private Sites require every visitor to sign in; public Sites may also have anonymous visitors, for whom neither header is present.
-
-The user ID is stable for the same user on the same Site and different across Sites. Email and name are intended for display or contact purposes.
-
-SIWC-authenticated workspace sites may also receive
-`oai-authenticated-user-full-name` when the user's SIWC profile has a non-empty
-`name` claim. The full-name value is percent-encoded UTF-8 and is accompanied by
-`oai-authenticated-user-full-name-encoding: percent-encoded-utf-8`.
-
-Treat the full name as optional and fall back to email when it is absent:
-
-```tsx
-import { headers } from "next/headers";
-
-export default async function Home() {
-  const requestHeaders = await headers();
-  const userId = requestHeaders.get("oai-authenticated-user-id");
-  const email = requestHeaders.get("oai-authenticated-user-email");
-  const encodedFullName = requestHeaders.get("oai-authenticated-user-full-name");
-  const fullName =
-    encodedFullName &&
-    requestHeaders.get("oai-authenticated-user-full-name-encoding") ===
-      "percent-encoded-utf-8"
-      ? decodeURIComponent(encodedFullName)
-      : null;
-
-  const displayName = fullName ?? email;
-  // ...
-}
-```
-
-## Optional Dispatch-Owned ChatGPT Sign-In
-
-Import the ready-to-use helpers from `app/chatgpt-auth.ts` when the site needs
-optional or required ChatGPT sign-in:
-
-- Use `getChatGPTUser()` for optional signed-in UI.
-- Use `requireChatGPTUser(returnTo)` for server-rendered pages that should send
-  anonymous visitors through Sign in with ChatGPT.
-- Use `chatGPTSignInPath(returnTo)` and `chatGPTSignOutPath(returnTo)` for
-  browser links or actions.
-- Pass a same-origin relative `returnTo` path for the destination after sign-in
-  or sign-out. The helper validates and safely encodes it.
-- Mark protected pages with `export const dynamic = "force-dynamic"` because
-  they depend on per-request identity headers.
-
-Dispatch owns `/signin-with-chatgpt`, `/signout-with-chatgpt`, `/callback`, the
-OAuth cookies, and identity header injection. Do not implement app routes for
-those reserved paths. Routes that do not import and call the helper remain
-anonymous-compatible.
-
-SIWC establishes identity only; it does not prove workspace membership. Use the
-Sites hosting platform's access policy controls for workspace-wide restrictions,
-or enforce explicit server-side membership or allowlist checks.
-
-Use SIWC for account pages, user-specific dashboards, saved records, and write
-actions tied to the current ChatGPT user. Leave public content anonymous.
-
-## Useful Commands
-
-- `npm run dev`: start local development
-- `npm run build`: verify the vinext build output
-- `npm test`: build the starter and verify its rendered loading skeleton
-- `npm run db:generate`: generate Drizzle migrations after schema changes
-
-## Learn More
-
-- [vinext Documentation](https://github.com/cloudflare/vinext)
-- [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+- vinext / React / TypeScript
+- Cloudflare Workers compatible runtime
+- OpenAI Sites
+- D1 SQLite
+- Drizzle schema/migration
+- Vitest / Testing Library
